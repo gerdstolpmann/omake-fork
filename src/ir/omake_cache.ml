@@ -779,6 +779,12 @@ let has_file_stat ?compact_stat ?digest cache node =
     has_file_stat_1 ?compact_stat ?digest cache node
 
 
+let unix_filename_exists path =
+  let basedir = Filename.dirname path in
+  let basename = Filename.basename path in
+  basename = "." || basename = ".." || Array.exists (String.equal basename) (Sys.readdir basedir)
+
+
 let stat_unix_node cache ~force node =
   (* We used to cache this information, but don't do this anymore. Hence,
      the [force] flag is ignored: we always re-stat
@@ -787,6 +793,7 @@ let stat_unix_node cache ~force node =
   let name = Omake_node.Node.fullname node in
   try
     let s = Unix.LargeFile.stat name in
+    if not @@ unix_filename_exists name then raise (Sys_error "");
     ex_set cache node true;
     s
   with
@@ -806,7 +813,9 @@ let lstat_unix_node _cache ~force node =
   ignore(force);
   let name = Omake_node.Node.fullname node in
   try
-    Unix.LargeFile.lstat name
+    let s = Unix.LargeFile.lstat name in
+    if not @@ unix_filename_exists name then raise (Sys_error "");
+    s
   with
       Unix.Unix_error _
     | Sys_error _ ->
