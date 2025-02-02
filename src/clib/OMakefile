@@ -71,6 +71,7 @@ FILES[] =
     lm_termsize
     lm_terminfo
     lm_fs_case_sensitive
+    time_zone
 
 MakeStaticCLibrary(clib, $(FILES))
 
