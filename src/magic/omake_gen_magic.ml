@@ -140,7 +140,11 @@ let omake_magic (buf : out_channel)
       in
       String.escaped (code ^ digest) in
   let version = read_version version_txt in
-  let tm =  Unix.(localtime (time ())) in
+  let tm =
+  try
+    Unix.(localtime (float_of_string (Sys.getenv "SOURCE_DATE_EPOCH")))
+  with
+    Not_found -> Unix.(localtime (Unix.time ())) in
   Printf.fprintf buf {|
 let default_save_interval = %F
 let input_magic inx = let s = Bytes.make %d ' ' in really_input inx s 0 %d; Bytes.to_string s
